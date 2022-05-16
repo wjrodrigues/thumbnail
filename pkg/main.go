@@ -1,3 +1,0 @@
-package thumbnail
-
-func main() {}
