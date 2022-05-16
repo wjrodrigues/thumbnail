@@ -13,13 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Copy Env's
-        run: cp docker/.env-test-example docker/.env
+        run: cp build/ci/.env-test-example build/ci/.env
 
       - name: Run docker
-        run: docker-compose -f docker/docker-compose-ci.yml up -d --build
+        run: docker-compose -f build/ci/docker-compose-ci.yml up -d --build
 
       - name: Install dependencies
         run: docker exec thumbnail-app sh -c "go mod download && go mod verify"
 
       - name: Run test
-        run: docker exec thumbnail-app sh -c "go test"
+        run: docker exec thumbnail-app sh -c "go test ./..."
