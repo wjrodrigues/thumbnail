@@ -71,7 +71,7 @@ func TestReturnsErrorWhenUnableToCreateTemporaryFile(t *testing.T) {
 
 	url := "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
 
-	TargetPath = "/nil"
+	TargetPath = "/nil/"
 	storage := StorageFile{path: url}
 	_, err := storage.Open()
 
