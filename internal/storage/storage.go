@@ -1,7 +1,6 @@
-package internal
+package storage
 
 import (
-	"errors"
 	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
@@ -13,39 +12,28 @@ import (
 	"time"
 )
 
-var Formats = map[string][]string{"image": {"jpeg", "jpg", "gif", "png"}}
 var TargetPath = fmt.Sprintf("%s/thumbnail_", os.TempDir())
 
 type Storage interface {
-	Open(path string) (Thumbnail, error)
+	GetFile() (Storage, error)
+	Supported(extensions []string) bool
 }
 
 type StorageFile struct {
-	file *os.File
-	path string
+	File *os.File
+	Path string
 }
 
-func (storage *StorageFile) Open() (Thumbnail, error) {
-	if storage.Supported(Formats["image"]) {
-		file, err := ThumbnailImage{}.Open(storage)
-		if err != nil {
-			return nil, err
-		}
-
-		return file, nil
-	}
-	return nil, errors.New("unsupported format")
-}
-
-func (storage *StorageFile) GetFile() (*StorageFile, error) {
-	file, err := os.Open(storage.path)
+func (storage *StorageFile) GetFile() (Storage, error) {
+	file, err := os.Open(storage.Path)
 	if err == nil {
-		storage.file = file
+		storage.File = file
 		return storage, nil
 	}
+
 	defer file.Close()
 
-	url, err := url.ParseRequestURI(storage.path)
+	url, err := url.ParseRequestURI(storage.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +45,7 @@ func (storage *StorageFile) GetFile() (*StorageFile, error) {
 	}
 
 	file, _ = os.Open(fileName)
-	storage.file = file
+	storage.File = file
 
 	return storage, nil
 }
@@ -92,7 +80,7 @@ func download(path *url.URL) (string, error) {
 }
 
 func (storage *StorageFile) Supported(extensions []string) bool {
-	extension := getExtension(storage.path)
+	extension := getExtension(storage.Path)
 
 	for _, target := range extensions {
 		if target == extension {
