@@ -31,14 +31,9 @@ func init() {
 
 func (storage *StorageFile) GetFile() (Storage, error) {
 	var file *os.File
+	file, _ = localFile(storage)
 
-	if _, err := os.Stat(storage.Path); !os.IsNotExist(err) {
-		file, err = saveTempFile(storage.Path)
-
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	if file == nil {
 		url, err := url.ParseRequestURI(storage.Path)
 		if err != nil {
 			return nil, err
@@ -58,14 +53,14 @@ func (storage *StorageFile) GetFile() (Storage, error) {
 	return storage, nil
 }
 
-func getExtension(fileName string) string {
+func GetExtension(fileName string) (string, string) {
 	splitPath := strings.Split(fileName, ".")
 
-	return splitPath[len(splitPath)-1]
+	return splitPath[0], splitPath[len(splitPath)-1]
 }
 
 func (storage *StorageFile) Supported(extensions []string) bool {
-	extension := getExtension(storage.Path)
+	_, extension := GetExtension(storage.Path)
 
 	for _, target := range extensions {
 		if target == extension {
@@ -76,6 +71,25 @@ func (storage *StorageFile) Supported(extensions []string) bool {
 	return false
 }
 
+func localFile(storage *StorageFile) (*os.File, error) {
+	if _, err := os.Stat(storage.Path); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	tmpFile, err := createTempFile(storage.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer tmpFile.Close()
+
+	source, _ := os.Open(storage.Path)
+	io.Copy(tmpFile, source)
+
+	defer source.Close()
+
+	return tmpFile, nil
+}
+
 func download(path *url.URL) (*os.File, error) {
 	resp, err := http.Get(path.String())
 	if err != nil {
@@ -84,18 +98,19 @@ func download(path *url.URL) (*os.File, error) {
 
 	defer resp.Body.Close()
 
-	out, err := saveTempFile(path.String())
+	tmpFile, err := createTempFile(path.String())
 	if err != nil {
 		return nil, err
 	}
+	defer tmpFile.Close()
 
-	io.Copy(out, resp.Body)
+	io.Copy(tmpFile, resp.Body)
 
-	return out, nil
+	return tmpFile, err
 }
 
-func saveTempFile(path string) (*os.File, error) {
-	extension := getExtension(path)
+func createTempFile(path string) (*os.File, error) {
+	_, extension := GetExtension(path)
 
 	uuid := uuid.New().String()
 	fileName := fmt.Sprintf("%s/%s.%s", TargetPath, uuid, extension)
@@ -104,7 +119,6 @@ func saveTempFile(path string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer out.Close()
 
 	return out, nil
 }
