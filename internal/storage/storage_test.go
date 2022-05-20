@@ -1,10 +1,17 @@
 package storage
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestReturnStringExtension(t *testing.T) {
+	_, extension := Extension("file.jpg")
+
+	assert.Equal(t, extension, "jpg")
+}
 
 func TestReturnsIfFormatIsSupported(t *testing.T) {
 	extensions := []string{"png", "jpg", "jpeg", "gif"}
@@ -51,7 +58,7 @@ func TestReturnsErrorWhenURLOrPath(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestReturnsErrorWhenUnableToCreateTemporaryFile(t *testing.T) {
+func TestReturnsErrorWhenUnableToCreateTemporaryFileByURL(t *testing.T) {
 	bkpTargetPath := TargetPath
 	defer func() { TargetPath = bkpTargetPath }()
 
@@ -62,4 +69,25 @@ func TestReturnsErrorWhenUnableToCreateTemporaryFile(t *testing.T) {
 	_, err := storage.GetFile()
 
 	assert.Error(t, err)
+}
+
+func TestReturnsErrorWhenUnableToCreateTemporaryFileByPath(t *testing.T) {
+	bkpTargetPath := TargetPath
+	defer func() { TargetPath = bkpTargetPath }()
+
+	url := "../../test/testdata/google_logo.png"
+
+	TargetPath = "/nil/"
+	storage := StorageFile{Path: url}
+	_, err := storage.GetFile()
+
+	assert.Error(t, err)
+}
+
+func TestReturnsFileInstance(t *testing.T) {
+	storage := StorageFile{Path: "../../test/testdata/google_logo.png"}
+	storage.GetFile()
+
+	response := storage.Resource()
+	assert.IsType(t, response, (*os.File)(nil))
 }

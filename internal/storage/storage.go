@@ -9,78 +9,57 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
+
+	"github.com/google/uuid"
 )
 
-var TargetPath = fmt.Sprintf("%s/thumbnail_", os.TempDir())
+var TargetPath = fmt.Sprintf("%s/thumbnail", os.TempDir())
 
 type Storage interface {
 	GetFile() (Storage, error)
 	Supported(extensions []string) bool
+	Resource() *os.File
 }
 
 type StorageFile struct {
-	File *os.File
+	file *os.File
 	Path string
 }
 
 func (storage *StorageFile) GetFile() (Storage, error) {
-	file, err := os.Open(storage.Path)
-	if err == nil {
-		storage.File = file
-		return storage, nil
+	createTempFolder(TargetPath)
+
+	var file *os.File
+	file, _ = localFile(storage)
+
+	if file == nil {
+		url, err := url.ParseRequestURI(storage.Path)
+		if err != nil {
+			return nil, err
+		}
+
+		file, err = download(url)
+
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	storage.file = file
 
 	defer file.Close()
-
-	url, err := url.ParseRequestURI(storage.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	fileName, err := download(url)
-
-	if err != nil {
-		return nil, err
-	}
-
-	file, _ = os.Open(fileName)
-	storage.File = file
 
 	return storage, nil
 }
 
-func getExtension(fileName string) string {
+func Extension(fileName string) (string, string) {
 	splitPath := strings.Split(fileName, ".")
 
-	return splitPath[len(splitPath)-1]
-}
-
-func download(path *url.URL) (string, error) {
-	extension := getExtension(path.String())
-
-	resp, err := http.Get(path.String())
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-
-	timestamp := time.Now().UnixNano()
-	fileName := fmt.Sprintf("%s%d.%s", TargetPath, timestamp, extension)
-
-	out, err := os.Create(fileName)
-	if err != nil {
-		return "", err
-	}
-
-	io.Copy(out, resp.Body)
-
-	return fileName, nil
+	return splitPath[0], splitPath[len(splitPath)-1]
 }
 
 func (storage *StorageFile) Supported(extensions []string) bool {
-	extension := getExtension(storage.Path)
+	_, extension := Extension(storage.Path)
 
 	for _, target := range extensions {
 		if target == extension {
@@ -89,4 +68,68 @@ func (storage *StorageFile) Supported(extensions []string) bool {
 	}
 
 	return false
+}
+
+func (storage *StorageFile) Resource() *os.File {
+	return storage.file
+}
+
+func localFile(storage *StorageFile) (*os.File, error) {
+	if _, err := os.Stat(storage.Path); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	tmpFile, err := createTempFile(storage.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer tmpFile.Close()
+
+	source, _ := os.Open(storage.Path)
+	io.Copy(tmpFile, source)
+
+	defer source.Close()
+
+	return tmpFile, nil
+}
+
+func download(path *url.URL) (*os.File, error) {
+	resp, err := http.Get(path.String())
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	tmpFile, err := createTempFile(path.String())
+	if err != nil {
+		return nil, err
+	}
+	defer tmpFile.Close()
+
+	io.Copy(tmpFile, resp.Body)
+
+	return tmpFile, err
+}
+
+func createTempFile(path string) (*os.File, error) {
+	_, extension := Extension(path)
+
+	uuid := uuid.New().String()
+	fileName := fmt.Sprintf("%s/%s.%s", TargetPath, uuid, extension)
+
+	tmpFile, err := os.Create(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	return tmpFile, nil
+}
+
+func createTempFolder(path string) {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return
+	}
+
+	os.Mkdir(path, 0755)
 }
