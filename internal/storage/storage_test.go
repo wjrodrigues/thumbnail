@@ -7,7 +7,7 @@ import (
 )
 
 func TestReturnStringExtension(t *testing.T) {
-	_, extension := GetExtension("file.jpg")
+	_, extension := Extension("file.jpg")
 
 	assert.Equal(t, extension, "jpg")
 }

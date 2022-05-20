@@ -18,10 +18,11 @@ var TargetPath = fmt.Sprintf("%s/thumbnail", os.TempDir())
 type Storage interface {
 	GetFile() (Storage, error)
 	Supported(extensions []string) bool
+	Resource() *os.File
 }
 
 type StorageFile struct {
-	File *os.File
+	file *os.File
 	Path string
 }
 
@@ -46,21 +47,21 @@ func (storage *StorageFile) GetFile() (Storage, error) {
 		}
 	}
 
-	storage.File = file
+	storage.file = file
 
 	defer file.Close()
 
 	return storage, nil
 }
 
-func GetExtension(fileName string) (string, string) {
+func Extension(fileName string) (string, string) {
 	splitPath := strings.Split(fileName, ".")
 
 	return splitPath[0], splitPath[len(splitPath)-1]
 }
 
 func (storage *StorageFile) Supported(extensions []string) bool {
-	_, extension := GetExtension(storage.Path)
+	_, extension := Extension(storage.Path)
 
 	for _, target := range extensions {
 		if target == extension {
@@ -69,6 +70,10 @@ func (storage *StorageFile) Supported(extensions []string) bool {
 	}
 
 	return false
+}
+
+func (storage *StorageFile) Resource() *os.File {
+	return storage.file
 }
 
 func localFile(storage *StorageFile) (*os.File, error) {
@@ -110,7 +115,7 @@ func download(path *url.URL) (*os.File, error) {
 }
 
 func createTempFile(path string) (*os.File, error) {
-	_, extension := GetExtension(path)
+	_, extension := Extension(path)
 
 	uuid := uuid.New().String()
 	fileName := fmt.Sprintf("%s/%s.%s", TargetPath, uuid, extension)
