@@ -51,11 +51,24 @@ func TestReturnsErrorWhenURLOrPath(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestReturnsErrorWhenUnableToCreateTemporaryFile(t *testing.T) {
+func TestReturnsErrorWhenUnableToCreateTemporaryFileByURL(t *testing.T) {
 	bkpTargetPath := TargetPath
 	defer func() { TargetPath = bkpTargetPath }()
 
 	url := "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+
+	TargetPath = "/nil/"
+	storage := StorageFile{Path: url}
+	_, err := storage.GetFile()
+
+	assert.Error(t, err)
+}
+
+func TestReturnsErrorWhenUnableToCreateTemporaryFileByPath(t *testing.T) {
+	bkpTargetPath := TargetPath
+	defer func() { TargetPath = bkpTargetPath }()
+
+	url := "../../test/testdata/google_logo.png"
 
 	TargetPath = "/nil/"
 	storage := StorageFile{Path: url}
