@@ -22,7 +22,7 @@ jobs:
         run: docker exec thumbnail-app sh -c "go mod download && go mod verify"
 
       - name: Run test
-        run: docker exec thumbnail-app sh -c "go test ./... -cover -v -coverprofile cover.out"
+        run: docker exec -u dev thumbnail-app sh -c "go test ./... -cover -v -coverprofile cover.out"
 
       - name: Coverage
         run: docker exec thumbnail-app bash build/ci/cover.sh
