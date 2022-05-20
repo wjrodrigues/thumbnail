@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -81,4 +82,12 @@ func TestReturnsErrorWhenUnableToCreateTemporaryFileByPath(t *testing.T) {
 	_, err := storage.GetFile()
 
 	assert.Error(t, err)
+}
+
+func TestReturnsFileInstance(t *testing.T) {
+	storage := StorageFile{Path: "../../test/testdata/google_logo.png"}
+	storage.GetFile()
+
+	response := storage.Resource()
+	assert.IsType(t, response, (*os.File)(nil))
 }

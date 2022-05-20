@@ -26,11 +26,9 @@ type StorageFile struct {
 	Path string
 }
 
-func init() {
-	createTempFolder(TargetPath)
-}
-
 func (storage *StorageFile) GetFile() (Storage, error) {
+	createTempFolder(TargetPath)
+
 	var file *os.File
 	file, _ = localFile(storage)
 
