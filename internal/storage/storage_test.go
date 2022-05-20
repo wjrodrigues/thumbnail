@@ -6,6 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestReturnStringExtension(t *testing.T) {
+	_, extension := GetExtension("file.jpg")
+
+	assert.Equal(t, extension, "jpg")
+}
+
 func TestReturnsIfFormatIsSupported(t *testing.T) {
 	extensions := []string{"png", "jpg", "jpeg", "gif"}
 	storage := StorageFile{Path: "image.png"}

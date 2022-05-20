@@ -115,12 +115,12 @@ func createTempFile(path string) (*os.File, error) {
 	uuid := uuid.New().String()
 	fileName := fmt.Sprintf("%s/%s.%s", TargetPath, uuid, extension)
 
-	out, err := os.Create(fileName)
+	tmpFile, err := os.Create(fileName)
 	if err != nil {
 		return nil, err
 	}
 
-	return out, nil
+	return tmpFile, nil
 }
 
 func createTempFolder(path string) {
