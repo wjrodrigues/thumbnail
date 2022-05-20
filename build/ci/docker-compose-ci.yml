@@ -7,6 +7,6 @@ services:
     container_name: thumbnail-app
     restart: always
     tty: true
-    working_dir: /app
+    working_dir: /home/app
     volumes:
-      - ../../:/app
+      - ../../:/home/app
