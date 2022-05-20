@@ -5,7 +5,8 @@ import (
 )
 
 type Thumbnail interface {
-	Open(storage *storage.StorageFile) (Thumbnail, error)
+	Open(storage storage.Storage) (Thumbnail, error)
+	Generate(width, height int, storageFile storage.Storage) (string, error)
 }
 
 func Open(path string) (Thumbnail, error) {

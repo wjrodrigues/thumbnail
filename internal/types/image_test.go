@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+	"os"
 	"testing"
 	"thumbnail/internal/storage"
 
@@ -46,4 +48,28 @@ func TestReturnsErrorWhenDecoderFails(t *testing.T) {
 	_, err := thumbnailImage.Open(&storage)
 
 	assert.Error(t, err)
+}
+
+func TestReturnsThumbnailNameWithNewDimensions(t *testing.T) {
+	thumbnailImage := ThumbnailImage{}
+	storageFile := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
+	response, _ := thumbnailImage.Open(&storageFile)
+
+	thumbnailName, _ := response.Generate(1024, 768, &storageFile)
+	path, extension := storage.Extension(storageFile.Resource().Name())
+	expectedThumbnailName := fmt.Sprintf("%s_%d_%d.%s", path, 1024, 768, extension)
+
+	assert.Equal(t, expectedThumbnailName, thumbnailName)
+}
+
+func TestValidateThumbnailCreation(t *testing.T) {
+	thumbnailImage := ThumbnailImage{}
+	storageFile := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
+	response, _ := thumbnailImage.Open(&storageFile)
+
+	thumbnailName, _ := response.Generate(250, 100, &storageFile)
+
+	_, err := os.Stat(thumbnailName)
+
+	assert.Equal(t, nil, err)
 }
