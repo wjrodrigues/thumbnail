@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: docker exec thumbnail-app sh -c "go mod download && go mod verify"
 
+      - name: Permissions
+        run: docker exec thumbnail-app sh -c "chmod 777 -R /app"
+
       - name: Run test
         run: docker exec -u dev thumbnail-app sh -c "go test ./... -cover -v -coverprofile cover.out"
 

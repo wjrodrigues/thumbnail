@@ -2,7 +2,7 @@ FROM golang:1.18
 
 ENV USER=dev
 
-WORKDIR /home/app
+WORKDIR /app
 
 ## Create a group and user
 RUN useradd -G sudo $USER
