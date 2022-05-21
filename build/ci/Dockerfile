@@ -4,6 +4,10 @@ ENV USER=dev
 
 WORKDIR /app
 
+## Dependências
+
+RUN apt-get update && apt-get install ffmpeg -y
+
 ## Create a group and user
 RUN useradd -G sudo $USER
 RUN mkdir -p /home/$USER/.cache/
