@@ -12,8 +12,14 @@ func TestOpenURLAndReturnsInstanceOfThumbnailImage(t *testing.T) {
 	assert.IsType(t, (*ThumbnailImage)(nil), resource)
 }
 
-func TestReturnErrorWhenOpeningUnsupportedFormat(t *testing.T) {
-	_, err := Open("../../test/testdata/google_logo.mp4")
+func TestOpenURLAndReturnsInstanceOfThumbnailVideo(t *testing.T) {
+	resource, _ := Open("../../test/testdata/go_land.mp4")
 
-	assert.Error(t, err)
+	assert.IsType(t, (*ThumbnailVideo)(nil), resource)
+}
+
+func TestReturnsErrorWhenFormatIsNotSupported(t *testing.T) {
+	_, err := Open("../../test/testdata/invalid_format.html")
+
+	assert.EqualError(t, err, "unsupported format")
 }
