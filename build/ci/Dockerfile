@@ -1,14 +1,12 @@
-FROM golang:1.18
+FROM alpine:edge
 
 ENV USER=dev
 
 WORKDIR /app
 
 ## Dependências
-
-RUN apt-get update && apt-get install ffmpeg -y
+RUN apk update && apk add go ffmpeg bash
 
 ## Create a group and user
-RUN useradd -G sudo $USER
-RUN mkdir -p /home/$USER/.cache/
-RUN chmod -R 777 /home/$USER/.cache/
+RUN addgroup -g 1000 dev_group
+RUN adduser -u 1000 -G dev_group -D dev
