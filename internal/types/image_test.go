@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReturnsErrorWithUnsupportedFormatMessageWhenOpen(t *testing.T) {
+func TestReturnsErrorWithOpenVideo(t *testing.T) {
 	thumbnailImage := ThumbnailImage{}
-	storage := storage.StorageFile{Path: "../../test/testdata/google_logo.mp4"}
+	storage := storage.StorageFile{Path: "../../test/testdata/go_land.mp4"}
 	_, err := thumbnailImage.Open(&storage)
 
 	assert.EqualError(t, err, "unsupported format")
@@ -55,7 +55,7 @@ func TestReturnsThumbnailNameWithNewDimensions(t *testing.T) {
 	storageFile := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
 	response, _ := thumbnailImage.Open(&storageFile)
 
-	thumbnailName, _ := response.Generate(1024, 768, &storageFile)
+	thumbnailName, _ := response.Generate(1024, 768, 0, &storageFile)
 	path, extension := storage.Extension(storageFile.Resource().Name())
 	expectedThumbnailName := fmt.Sprintf("%s_%d_%d.%s", path, 1024, 768, extension)
 
@@ -67,7 +67,7 @@ func TestValidateThumbnailCreation(t *testing.T) {
 	storageFile := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
 	response, _ := thumbnailImage.Open(&storageFile)
 
-	thumbnailName, _ := response.Generate(250, 100, &storageFile)
+	thumbnailName, _ := response.Generate(250, 100, 0, &storageFile)
 
 	_, err := os.Stat(thumbnailName)
 

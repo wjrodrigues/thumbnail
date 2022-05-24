@@ -10,7 +10,7 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-var formats = []string{"jpeg", "jpg", "png"}
+var ImageFormats = []string{"jpeg", "jpg", "png"}
 
 type ThumbnailImage struct {
 	Resource image.Image
@@ -18,7 +18,7 @@ type ThumbnailImage struct {
 }
 
 func (img *ThumbnailImage) Open(storage storage.Storage) (Thumbnail, error) {
-	if !storage.Supported(formats) {
+	if !storage.Supported(ImageFormats) {
 		return nil, errors.New("unsupported format")
 	}
 
@@ -42,7 +42,7 @@ func (img *ThumbnailImage) Open(storage storage.Storage) (Thumbnail, error) {
 	return img, nil
 }
 
-func (img *ThumbnailImage) Generate(width, height int, storageFile storage.Storage) (string, error) {
+func (img *ThumbnailImage) Generate(width, height, time int, storageFile storage.Storage) (string, error) {
 	dstImage := imaging.Resize(img.Resource, width, height, imaging.CatmullRom)
 
 	path, extension := storage.Extension(storageFile.Resource().Name())
