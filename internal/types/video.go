@@ -32,20 +32,25 @@ func (video *ThumbnailVideo) Open(storage storage.Storage) (Thumbnail, error) {
 	return video, err
 }
 
-func (video *ThumbnailVideo) Generate(width, height, time int, storageFile storage.Storage) (string, error) {
+func (video *ThumbnailVideo) Generate(width, height, duration int, storageFile storage.Storage) (string, error) {
 	pathWithoutExtension, _ := storage.Extension(storageFile.Resource().Name())
 
-	gifPath := fmt.Sprintf("%s.gif", pathWithoutExtension)
+	gifFullPath := fmt.Sprintf("%s.gif", pathWithoutExtension)
+	resourceFullPath := storageFile.Resource().Name()
 
-	//	filterCmd := fmt.Sprintf("[0:v] fps=15,scale=w=%d:h=%d,split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1", width, height)
+	args := prepareArgs(width, height, duration, resourceFullPath, gifFullPath)
 
-	//	rawCmd := fmt.Sprintf("-ss 0 -t 10.0 -i %s -filter_complex '%s' %s", storageFile.Resource().Name(), filterCmd, gifPath)
-	args := fmt.Sprintf("-ss 0 -t 10.0 -i %s -filter_complex '[0:v] fps=15,scale=w=250:h=100,split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1' %s", storageFile.Resource().Name(), gifPath)
-	cmd := exec.Command("ffmpeg", args)
-	stdout, err := cmd.Output()
-	fmt.Println(string(stdout), err)
+	_, err := exec.Command("ffmpeg", args...).CombinedOutput()
 
-	return "", nil
+	return gifFullPath, err
+}
 
-	//ffmpeg -ss 0 -t 10.0 -i /tmp/thumbnail/0f4186e0-1c4c-4472-8990-027a1e545bc8.mp4 -filter_complex '[0:v] fps=15,scale=w=250:h=100,split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1' /tmp/thumbnail/0f4186e0-1c4c-4472-8990-027a1e545bc8.gif
+func prepareArgs(width, height, duration int, resourceFullPath, gifFullPath string) []string {
+	extraArg := fmt.Sprintf(
+		"fps=10,scale=%d:%d:flags=fast_bilinear,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse", width, height)
+
+	durationString := fmt.Sprintf("%d", duration)
+	return []string{
+		"-ss", "0", "-t", durationString, "-i", resourceFullPath, "-vf", extraArg, "-loop", "0", gifFullPath,
+	}
 }

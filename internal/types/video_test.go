@@ -34,8 +34,8 @@ func TestReturnsErrorOpeningInvalidVideoPath(t *testing.T) {
 func TestReturnsGIFThumbnailOfVideo(t *testing.T) {
 	thumbnailVideo := ThumbnailVideo{}
 	storageFile := storage.StorageFile{Path: "../../test/testdata/go_land.mp4"}
-	response, _ := thumbnailVideo.Open(&storageFile)
+	thumbnail, _ := thumbnailVideo.Open(&storageFile)
+	response, _ := thumbnail.Generate(10, 10, 5, &storageFile)
 
-	response.Generate(250, 100, 0, &storageFile)
-
+	assert.Contains(t, response, ".gif")
 }
