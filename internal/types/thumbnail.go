@@ -6,8 +6,8 @@ import (
 )
 
 type Thumbnail interface {
-	Open(storage storage.Storage) (Thumbnail, error)
-	Generate(width, height, time int, storageFile storage.Storage) (string, error)
+	Open() (Thumbnail, error)
+	Generate(width, height, time int) (string, error)
 }
 
 func Open(path string) (Thumbnail, error) {
@@ -17,13 +17,13 @@ func Open(path string) (Thumbnail, error) {
 	storageFile := storage.StorageFile{Path: path}
 
 	if storageFile.Supported(ImageFormats) {
-		thumbnail := ThumbnailImage{}
-		resource, err = thumbnail.Open(&storageFile)
+		thumbnail := ThumbnailImage{Storage: &storageFile}
+		resource, err = thumbnail.Open()
 	}
 
 	if storageFile.Supported(VideoFormats) {
-		thumbnail := ThumbnailVideo{}
-		resource, err = thumbnail.Open(&storageFile)
+		thumbnail := ThumbnailVideo{Storage: &storageFile}
+		resource, err = thumbnail.Open()
 	}
 
 	if resource == nil {

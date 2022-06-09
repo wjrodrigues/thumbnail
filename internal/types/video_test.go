@@ -8,34 +8,38 @@ import (
 )
 
 func TestReturnsErrorWhenOpenImage(t *testing.T) {
-	thumbnailImage := ThumbnailVideo{}
 	storage := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
-	_, err := thumbnailImage.Open(&storage)
+	thumbnailImage := ThumbnailVideo{Storage: &storage}
+
+	_, err := thumbnailImage.Open()
 
 	assert.EqualError(t, err, "unsupported format")
 }
 
 func TestReturnsThumbnailInstanceWhenOpeningVideo(t *testing.T) {
-	thumbnailVideo := ThumbnailVideo{}
 	storage := storage.StorageFile{Path: "../../test/testdata/go_land.mp4"}
-	response, _ := thumbnailVideo.Open(&storage)
+	thumbnailVideo := ThumbnailVideo{Storage: &storage}
+
+	response, _ := thumbnailVideo.Open()
 
 	assert.Implements(t, (*Thumbnail)(nil), response)
 }
 
 func TestReturnsErrorOpeningInvalidVideoPath(t *testing.T) {
-	thumbnailVideo := ThumbnailVideo{}
 	storage := storage.StorageFile{Path: "../../test/testdata/invalid.mp4"}
-	_, err := thumbnailVideo.Open(&storage)
+	thumbnailVideo := ThumbnailVideo{Storage: &storage}
+
+	_, err := thumbnailVideo.Open()
 
 	assert.Error(t, err)
 }
 
 func TestReturnsGIFThumbnailOfVideo(t *testing.T) {
-	thumbnailVideo := ThumbnailVideo{}
 	storageFile := storage.StorageFile{Path: "../../test/testdata/go_land.mp4"}
-	thumbnail, _ := thumbnailVideo.Open(&storageFile)
-	response, _ := thumbnail.Generate(10, 10, 5, &storageFile)
+	thumbnailVideo := ThumbnailVideo{Storage: &storageFile}
+
+	thumbnail, _ := thumbnailVideo.Open()
+	response, _ := thumbnail.Generate(10, 10, 5)
 
 	assert.Contains(t, response, ".gif")
 }
