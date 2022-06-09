@@ -44,5 +44,5 @@ func TestReturnErrorResponseWhenFormatIsInvalid(t *testing.T) {
 	response := service.Call(url)
 
 	assert.Nil(t, response.result)
-	assert.EqualError(t, response.errors, "unsupported format or invalid file")
+	assert.EqualError(t, response.errors, "unsupported format")
 }
