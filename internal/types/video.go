@@ -11,32 +11,33 @@ import (
 var VideoFormats = []string{"avi", "mp4", "mov"}
 
 type ThumbnailVideo struct {
+	Storage  storage.Storage
 	Resource *os.File
 }
 
-func (video *ThumbnailVideo) Open(storage storage.Storage) (Thumbnail, error) {
-	if !storage.Supported(VideoFormats) {
+func (video *ThumbnailVideo) Open() (Thumbnail, error) {
+	if !video.Storage.Supported(VideoFormats) {
 		return nil, errors.New("unsupported format")
 	}
 
-	_, err := storage.GetFile()
+	_, err := video.Storage.GetFile()
 
 	if err != nil {
 		return nil, err
 	}
 
-	file, _ := os.Open(storage.Resource().Name())
+	file, _ := os.Open(video.Storage.Resource().Name())
 
 	video.Resource = file
 
 	return video, err
 }
 
-func (video *ThumbnailVideo) Generate(width, height, duration int, storageFile storage.Storage) (string, error) {
-	pathWithoutExtension, _ := storage.Extension(storageFile.Resource().Name())
+func (video *ThumbnailVideo) Generate(width, height, duration int) (string, error) {
+	pathWithoutExtension, _ := storage.Extension(video.Storage.Resource().Name())
 
 	gifFullPath := fmt.Sprintf("%s.gif", pathWithoutExtension)
-	resourceFullPath := storageFile.Resource().Name()
+	resourceFullPath := video.Storage.Resource().Name()
 
 	args := prepareArgs(width, height, duration, resourceFullPath, gifFullPath)
 

@@ -10,17 +10,17 @@ import (
 )
 
 func TestReturnsErrorWithOpenVideo(t *testing.T) {
-	thumbnailImage := ThumbnailImage{}
 	storage := storage.StorageFile{Path: "../../test/testdata/go_land.mp4"}
-	_, err := thumbnailImage.Open(&storage)
+	thumbnailImage := ThumbnailImage{Storage: &storage}
+	_, err := thumbnailImage.Open()
 
 	assert.EqualError(t, err, "unsupported format")
 }
 
 func TestOpenAndReturnThumbnailImageInstance(t *testing.T) {
-	thumbnailImage := ThumbnailImage{}
 	storage := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
-	response, _ := thumbnailImage.Open(&storage)
+	thumbnailImage := ThumbnailImage{Storage: &storage}
+	response, _ := thumbnailImage.Open()
 
 	assert.Implements(t, (*Thumbnail)(nil), response)
 }
@@ -28,34 +28,35 @@ func TestOpenAndReturnThumbnailImageInstance(t *testing.T) {
 func TestOpenImageFromURLAndReturnThumbnail(t *testing.T) {
 	url := "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
 	storage := storage.StorageFile{Path: url}
-	thumbnailImage := ThumbnailImage{}
-	response, _ := thumbnailImage.Open(&storage)
+	thumbnailImage := ThumbnailImage{Storage: &storage}
+	response, _ := thumbnailImage.Open()
 
 	assert.Implements(t, (*Thumbnail)(nil), response)
 }
 
 func TestOpenAndReturnInvalidPathError(t *testing.T) {
-	thumbnailImage := ThumbnailImage{}
 	storage := storage.StorageFile{Path: "../../test/testdata/invalid.png"}
-	_, err := thumbnailImage.Open(&storage)
+	thumbnailImage := ThumbnailImage{Storage: &storage}
+	_, err := thumbnailImage.Open()
 
 	assert.Error(t, err)
 }
 
 func TestReturnsErrorWhenDecoderFails(t *testing.T) {
-	thumbnailImage := ThumbnailImage{}
 	storage := storage.StorageFile{Path: "../../test/testdata/invalid_image.png"}
-	_, err := thumbnailImage.Open(&storage)
+	thumbnailImage := ThumbnailImage{Storage: &storage}
+	_, err := thumbnailImage.Open()
 
 	assert.Error(t, err)
 }
 
 func TestReturnsThumbnailNameWithNewDimensions(t *testing.T) {
-	thumbnailImage := ThumbnailImage{}
 	storageFile := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
-	response, _ := thumbnailImage.Open(&storageFile)
+	thumbnailImage := ThumbnailImage{Storage: &storageFile}
+	response, _ := thumbnailImage.Open()
 
-	thumbnailName, _ := response.Generate(1024, 768, 0, &storageFile)
+	thumbnailName, _ := response.Generate(1024, 768, 0)
+
 	path, extension := storage.Extension(storageFile.Resource().Name())
 	expectedThumbnailName := fmt.Sprintf("%s_%d_%d.%s", path, 1024, 768, extension)
 
@@ -63,11 +64,12 @@ func TestReturnsThumbnailNameWithNewDimensions(t *testing.T) {
 }
 
 func TestValidateThumbnailCreation(t *testing.T) {
-	thumbnailImage := ThumbnailImage{}
 	storageFile := storage.StorageFile{Path: "../../test/testdata/google_logo.png"}
-	response, _ := thumbnailImage.Open(&storageFile)
+	thumbnailImage := ThumbnailImage{Storage: &storageFile}
 
-	thumbnailName, _ := response.Generate(250, 100, 0, &storageFile)
+	response, _ := thumbnailImage.Open()
+
+	thumbnailName, _ := response.Generate(250, 100, 0)
 
 	_, err := os.Stat(thumbnailName)
 

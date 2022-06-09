@@ -13,22 +13,23 @@ import (
 var ImageFormats = []string{"jpeg", "jpg", "png"}
 
 type ThumbnailImage struct {
+	Storage  storage.Storage
 	Resource image.Image
 	Format   string
 }
 
-func (img *ThumbnailImage) Open(storage storage.Storage) (Thumbnail, error) {
-	if !storage.Supported(ImageFormats) {
+func (img *ThumbnailImage) Open() (Thumbnail, error) {
+	if !img.Storage.Supported(ImageFormats) {
 		return nil, errors.New("unsupported format")
 	}
 
-	_, err := storage.GetFile()
+	_, err := img.Storage.GetFile()
 
 	if err != nil {
 		return nil, err
 	}
 
-	file, _ := os.Open(storage.Resource().Name())
+	file, _ := os.Open(img.Storage.Resource().Name())
 	src, format, err := image.Decode(file)
 
 	if err != nil {
@@ -42,10 +43,10 @@ func (img *ThumbnailImage) Open(storage storage.Storage) (Thumbnail, error) {
 	return img, nil
 }
 
-func (img *ThumbnailImage) Generate(width, height, time int, storageFile storage.Storage) (string, error) {
+func (img *ThumbnailImage) Generate(width, height, time int) (string, error) {
 	dstImage := imaging.Resize(img.Resource, width, height, imaging.CatmullRom)
 
-	path, extension := storage.Extension(storageFile.Resource().Name())
+	path, extension := storage.Extension(img.Storage.Resource().Name())
 	pathNewFile := fmt.Sprintf("%s_%d_%d.%s", path, width, height, extension)
 
 	err := imaging.Save(dstImage, pathNewFile)
